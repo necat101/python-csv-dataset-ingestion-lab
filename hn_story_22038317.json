@@ -1,0 +1,20 @@
+{
+  "by": "reedwolf",
+  "descendants": 42,
+  "id": 22038317,
+  "kids": [
+    22040336,
+    22039574,
+    22040673,
+    22042189,
+    22042799,
+    22044666,
+    22042171,
+    22039134
+  ],
+  "score": 154,
+  "time": 1578947970,
+  "title": "CleverCSV: A Drop-In Replacement for Python's CSV Module",
+  "type": "story",
+  "url": "https://github.com/alan-turing-institute/CleverCSV"
+}
