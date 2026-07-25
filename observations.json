@@ -1,0 +1,74 @@
+[
+  {
+    "case_id": "quoted_comma_field_marker",
+    "method": "inspect_inputs",
+    "pass": true,
+    "detail": "header ok, quoted comma field present"
+  },
+  {
+    "case_id": "quoted_comma_field_marker",
+    "method": "execute_parse",
+    "pass": true,
+    "detail": "parsed list"
+  },
+  {
+    "case_id": "quoted_comma_field_marker",
+    "method": "verify_relation",
+    "pass": true,
+    "detail": "2 rows, 3 cols, quoted comma preserved"
+  },
+  {
+    "case_id": "multiline_text_field_marker",
+    "method": "inspect_inputs",
+    "pass": true,
+    "detail": "header ok, balanced quotes, 1 embedded newline"
+  },
+  {
+    "case_id": "multiline_text_field_marker",
+    "method": "execute_parse",
+    "pass": true,
+    "detail": "parsed list"
+  },
+  {
+    "case_id": "multiline_text_field_marker",
+    "method": "verify_relation",
+    "pass": true,
+    "detail": "2 logical rows, embedded newline preserved"
+  },
+  {
+    "case_id": "missing_column_dictreader_marker",
+    "method": "inspect_inputs",
+    "pass": true,
+    "detail": "3 header fields, 2 data values, restval=MISSING"
+  },
+  {
+    "case_id": "missing_column_dictreader_marker",
+    "method": "execute_parse",
+    "pass": true,
+    "detail": "parsed dict"
+  },
+  {
+    "case_id": "missing_column_dictreader_marker",
+    "method": "verify_relation",
+    "pass": true,
+    "detail": "missing field received \"MISSING\""
+  },
+  {
+    "case_id": "extra_column_dictreader_marker",
+    "method": "inspect_inputs",
+    "pass": true,
+    "detail": "3 header fields, 4 data values, restkey=__extra__"
+  },
+  {
+    "case_id": "extra_column_dictreader_marker",
+    "method": "execute_parse",
+    "pass": true,
+    "detail": "parsed dict"
+  },
+  {
+    "case_id": "extra_column_dictreader_marker",
+    "method": "verify_relation",
+    "pass": true,
+    "detail": "extra value collected under \"__extra__\""
+  }
+]
