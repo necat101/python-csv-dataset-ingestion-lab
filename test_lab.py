@@ -121,5 +121,49 @@ class TestLab(unittest.TestCase):
         rows2 = run_lab.run_lab()
         self.assertEqual(rows, rows2)
 
+    # executor failure tests — prove each production executor can return failure
+    def test_execute_quoted_comma_can_fail(self):
+        case = dict(run_lab.CASES[0])
+        case["csv_text"] = "id,text,label\n1,unclosed \"quote\n"
+        ok, detail = run_lab.execute_quoted_comma(case)
+        # either parse error, or wrong row/column count — both count as failure
+        self.assertFalse(ok)
+
+    def test_execute_multiline_can_fail(self):
+        case = dict(run_lab.CASES[1])
+        # no quotes around multiline — csv.reader will see 3 logical rows
+        case["csv_text"] = "id,note\n2,line one\nline two\n"
+        ok, detail = run_lab.execute_multiline(case)
+        self.assertFalse(ok)
+
+    def test_execute_missing_column_can_fail(self):
+        case = dict(run_lab.CASES[2])
+        # corrupt header so fieldnames don't match
+        case["csv_text"] = "wrong,header\nx,y\n"
+        ok, detail = run_lab.execute_missing_column(case)
+        self.assertFalse(ok)
+
+    def test_execute_extra_column_can_fail(self):
+        case = dict(run_lab.CASES[3])
+        # corrupt so no data row — DictReader gets 0 rows
+        case["csv_text"] = "a,b,c\n"
+        ok, detail = run_lab.execute_extra_column(case)
+        self.assertFalse(ok)
+
+    def test_render_results_matches_rows(self):
+        rows = run_lab.run_lab()
+        output = run_lab.render_results(rows)
+        # every case_id and method appears in the rendered text
+        for r in rows:
+            self.assertIn(r["case_id"], output)
+            self.assertIn(r["method"], output)
+            self.assertIn(r["detail"], output)
+        # PASS/FAIL counts match
+        passed = sum(1 for r in rows if r["pass"])
+        self.assertIn(f"{passed}/{len(rows)} rows passed", output)
+        # deterministic
+        output2 = run_lab.render_results(rows)
+        self.assertEqual(output, output2)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

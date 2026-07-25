@@ -113,26 +113,65 @@ INSPECTORS = {
 # ---- execute_parse --------------------------------------------------
 
 def execute_quoted_comma(case):
-    f = io.StringIO(case["csv_text"])
-    rows = list(csv.reader(f))
+    try:
+        f = io.StringIO(case["csv_text"])
+        rows = list(csv.reader(f))
+    except Exception as e:
+        return False, f"parse error: {e}"
+    # confirm parsing returns expected header and one data row
+    if len(rows) != 2:
+        return False, f"expected 2 rows, got {len(rows)}"
+    header, data = rows
+    if header != ["id", "text", "label"]:
+        return False, f"unexpected header: {header}"
+    if len(data) != 3:
+        return False, f"expected 3 columns, got {len(data)}"
     return True, rows
 
 def execute_multiline(case):
-    f = io.StringIO(case["csv_text"])
-    rows = list(csv.reader(f))
+    try:
+        f = io.StringIO(case["csv_text"])
+        rows = list(csv.reader(f))
+    except Exception as e:
+        return False, f"parse error: {e}"
+    # confirm parsing returns exactly two logical rows
+    if len(rows) != 2:
+        return False, f"expected 2 logical rows, got {len(rows)}"
     return True, rows
 
 def execute_missing_column(case):
-    f = io.StringIO(case["csv_text"])
-    reader = csv.DictReader(f, restval=case["restval"])
-    rows = list(reader)
-    return True, {"fieldnames": reader.fieldnames, "rows": rows}
+    try:
+        f = io.StringIO(case["csv_text"])
+        reader = csv.DictReader(f, restval=case["restval"])
+        fieldnames = reader.fieldnames
+        rows = list(reader)
+    except Exception as e:
+        return False, f"parse error: {e}"
+    # confirm DictReader reports expected field names and one parsed dict
+    if fieldnames != ["a", "b", "c"]:
+        return False, f"unexpected fieldnames: {fieldnames}"
+    if len(rows) != 1:
+        return False, f"expected 1 row, got {len(rows)}"
+    if not isinstance(rows[0], dict):
+        return False, "row is not a dict"
+    return True, {"fieldnames": fieldnames, "rows": rows}
 
 def execute_extra_column(case):
-    f = io.StringIO(case["csv_text"])
-    reader = csv.DictReader(f, restkey=case["restkey"])
-    rows = list(reader)
-    return True, {"fieldnames": reader.fieldnames, "rows": rows}
+    try:
+        f = io.StringIO(case["csv_text"])
+        reader = csv.DictReader(f, restkey=case["restkey"])
+        fieldnames = reader.fieldnames
+        rows = list(reader)
+    except Exception as e:
+        return False, f"parse error: {e}"
+    # confirm field names and one parsed dict
+    if fieldnames != ["a", "b", "c"]:
+        return False, f"unexpected fieldnames: {fieldnames}"
+    if len(rows) != 1:
+        return False, f"expected 1 row, got {len(rows)}"
+    if not isinstance(rows[0], dict):
+        return False, "row is not a dict"
+    return True, {"fieldnames": fieldnames, "rows": rows}
 
 EXECUTORS = {
     "quoted_comma_field_marker": execute_quoted_comma,
@@ -222,7 +261,7 @@ def run_one_case(case):
         "case_id": case_id,
         "method": "execute_parse",
         "pass": ok,
-        "detail": f"parsed {type(parsed).__name__}",
+        "detail": f"parsed {type(parsed).__name__}" if ok else str(parsed),
     })
     # execute_parse should always succeed for these cases
     if not ok:
@@ -245,21 +284,32 @@ def run_lab():
         all_rows.extend(rows)
     return all_rows
 
-def main():
-    rows = run_lab()
-    # print table
-    print(f"{'case_id':<35} {'method':<18} {'result':<6} detail")
-    print("-" * 100)
+def render_results(rows):
+    """Render the twelve-row results table. Returns the text."""
+    lines = []
+    lines.append(f"{'case_id':<35} {'method':<18} {'result':<6} detail")
+    lines.append("-" * 100)
     for r in rows:
         status = "PASS" if r["pass"] else "FAIL"
-        print(f"{r['case_id']:<35} {r['method']:<18} {status:<6} {r['detail']}")
-    print()
+        lines.append(f"{r['case_id']:<35} {r['method']:<18} {status:<6} {r['detail']}")
+    lines.append("")
     passed = sum(1 for r in rows if r["pass"])
-    print(f"{passed}/{len(rows)} rows passed")
+    lines.append(f"{passed}/{len(rows)} rows passed")
+    lines.append("")
+    return "\n".join(lines)
+
+def main():
+    rows = run_lab()
+    output = render_results(rows)
+    print(output, end="")
 
     # write observations.json
     with open("observations.json", "w") as f:
         json.dump(rows, f, indent=2)
+
+    # write RESULTS.md from same rows
+    with open("RESULTS.md", "w") as f:
+        f.write(output)
 
     return rows
 
